@@ -7,5 +7,9 @@
     "test": "node task.js"
   },
   "author": "hyokeun lee",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "jsdom": "^25.0.1"
+  }
 }
