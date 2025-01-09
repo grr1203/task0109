@@ -10,8 +10,25 @@ const { JSDOM } = require('jsdom');
 export async function isSpam(content, spamLinkDomains, redirectionDepth) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const links = content.match(urlRegex) || [];
+  const visitedLinkList = new Set();
 
-  return;
+  const results = await Promise.all(
+    links.map(async (link) => {
+      const finalUrl = await traceRedirect(link, redirectionDepth, visitedLinkList);
+      const domain = new URL(finalUrl).hostname;
+
+      if (spamLinkDomains.includes(domain)) return true;
+
+      const pageLinks = await findLinksInHtml(finalUrl);
+      for (const pageLink of pageLinks) {
+        const finalLink = await traceRedirect(pageLink, redirectionDepth - 1, visitedLinkList); // 중첩 링크의 리디렉션 확인
+        const pageDomain = new URL(finalLink).hostname;
+
+        if (spamLinkDomains.includes(pageDomain)) return true;
+      }
+    })
+  );
+  return results.includes(true);
 }
 
 // URL의 모든 redirection 확인 후 마지막 URL 반환
